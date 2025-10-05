@@ -1,0 +1,91 @@
+name: all-ai
+base: core24
+version: '1.0.0'
+summary: ALL ai – private CPU-only AI chat app (llama.cpp server + web UI)
+description: |
+  ALL ai is a private, CPU-only AI chat Snap built on llama.cpp with its modern
+  built-in Web UI. Runs fully local on ALL Core OS (Ubuntu Core based).
+
+  Features:
+  - CPU-only inference via llama.cpp
+  - Embedded web UI served by the llama-server
+  - Default model bootstrap helper (Gemma 2B Q4_K_M)
+  - Simple daemon app exposing the UI on a local port
+
+grade: stable
+confinement: strict
+
+platforms:
+  amd64:
+    build-on: amd64
+    build-for: amd64
+  arm64:
+    build-on: arm64
+    build-for: arm64
+
+apps:
+  all-ai:
+    command: bin/start.sh
+    daemon: simple
+    restart-condition: on-failure
+    restart-delay: 5s
+    plugs:
+      - network
+      - network-bind
+
+  fetch-model:
+    command: bin/fetch_model.sh
+    plugs:
+      - network
+
+parts:
+  # Build llama.cpp and the embedded web UI server (llama-server)
+  llama-cpp:
+    plugin: cmake
+    source: backend/llama.cpp
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+    build-packages:
+      - build-essential
+      - cmake
+      - pkg-config
+      - nodejs
+      - npm
+      - python3
+    stage-packages:
+      - libstdc++6
+    override-build: |
+      set -eux
+      # Build the Web UI (writes to ../public via the webui build plugin)
+      pushd "$CRAFT_PART_SRC/tools/server/webui"
+      npm ci
+      npm run build
+      popd
+
+      # Proceed with the normal cmake build & install (installs llama-server into $CRAFT_PART_INSTALL/usr/bin)
+      craftctl default
+
+  # Stage our app scripts and helper files
+  app-scripts:
+    plugin: dump
+    source: .
+    stage:
+      - bin/*
+      - backend/models/*
+      - assets/branding/*
+    build-packages:
+      - bash
+    stage-packages:
+      - curl
+      - netcat-openbsd
+      - bash
+    override-prime: |
+      set -eux
+      craftctl default
+      chmod +x $CRAFT_PRIME/bin/*.sh
+
+environment:
+  PATH: $SNAP/usr/bin:$SNAP/bin:$PATH
+  LANG: C.UTF-8
+  LC_ALL: C.UTF-8
+  ALLAI_DEFAULT_MODEL: $SNAP_COMMON/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf

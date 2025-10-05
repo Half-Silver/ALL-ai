@@ -1,0 +1,57 @@
+# macOS
+.DS_Store
+
+# Node / SvelteKit (Web UI)
+backend/llama.cpp/tools/server/webui/node_modules/
+backend/llama.cpp/tools/server/webui/.svelte-kit/
+backend/llama.cpp/tools/server/webui/.vite/
+backend/llama.cpp/tools/server/webui/.cache/
+backend/llama.cpp/tools/server/webui/dist/
+backend/llama.cpp/tools/server/webui/storybook-static/
+backend/llama.cpp/tools/server/webui/coverage/
+backend/llama.cpp/tools/server/webui/test-results/
+backend/llama.cpp/tools/server/webui/playwright-report/
+backend/llama.cpp/tools/server/webui/.storybook-out/
+
+# CMake build artifacts
+backend/llama.cpp/build/
+backend/llama.cpp/CMakeFiles/
+backend/llama.cpp/CMakeCache.txt
+backend/llama.cpp/compile_commands.json
+backend/llama.cpp/cmake-build*/
+
+# Snapcraft artifacts
+parts/
+prime/
+stage/
+.snapcraft/
+*.snap
+
+# Models and large binaries (keep placeholders like .gitkeep)
+backend/models/*.gguf
+backend/models/*.bin
+backend/models/*.pth
+backend/models/*.pt
+backend/models/*.safetensors
+
+# llama.cpp generated public assets (retain tracked files like loading.html)
+backend/llama.cpp/tools/server/public/index.html*
+backend/llama.cpp/tools/server/public/**/*.gz
+backend/llama.cpp/tools/server/public/assets/
+backend/llama.cpp/tools/server/public/build/
+
+# Python / venv
+.venv/
+venv/
+__pycache__/
+
+# Logs
+logs/
+*.log
+
+# Editors / IDE
+.vscode/
+.idea/
+
+# Misc
+allfiles.txt
