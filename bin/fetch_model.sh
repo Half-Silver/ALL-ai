@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Fetch Gemma 2B Q4_K_M model into $SNAP_COMMON/models (or ./backend/models if SNAP_COMMON not set)
-# Source: https://huggingface.co/mlabonne/gemma-2b-GGUF/blob/main/gemma-2b-Q4_K_M.gguf
+# Fetch a .gguf model into $SNAP_COMMON/models (or ./backend/models if SNAP_COMMON not set)
+# Defaults to Mistral 7B Instruct v0.2 Q4_K_M
+# Usage:
+#   fetch_model.sh                # default Mistral 7B Instruct v0.2
+#   fetch_model.sh MODEL.gguf     # from default repo
+#   fetch_model.sh https://...gguf # from direct URL
 # Optional: export HF_TOKEN=<token> if the repo requires authentication
 
 log() { printf "[ALL ai] %s\n" "$*"; }
 err() { printf "[ALL ai][ERROR] %s\n" "$*" >&2; }
 
-MODEL_REPO="https://huggingface.co/mlabonne/gemma-2b-GGUF/resolve/main"
-MODEL_FILE="gemma-2b-Q4_K_M.gguf"
+MODEL_REPO="https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main"
+DEFAULT_MODEL_FILE="mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 
 TARGET_ROOT="${SNAP_COMMON:-${SNAP:-$PWD}/backend}"
 TARGET_DIR="${TARGET_ROOT}/models"
-TARGET_PATH="${TARGET_DIR}/${MODEL_FILE}"
 
 mkdir -p "$TARGET_DIR"
 
@@ -25,7 +28,21 @@ if [ -n "${HF_TOKEN:-}" ]; then
   curl_cmd+=( -H "Authorization: Bearer ${HF_TOKEN}" )
 fi
 
-URL="${MODEL_REPO}/${MODEL_FILE}"
+ARG="${1:-}"
+if [ -n "$ARG" ]; then
+  if echo "$ARG" | grep -Eqi '^https?://'; then
+    URL="$ARG"
+    TARGET_FILE="$(basename "$ARG")"
+  else
+    TARGET_FILE="$ARG"
+    URL="${MODEL_REPO}/${TARGET_FILE}"
+  fi
+else
+  TARGET_FILE="$DEFAULT_MODEL_FILE"
+  URL="${MODEL_REPO}/${TARGET_FILE}"
+fi
+
+TARGET_PATH="${TARGET_DIR}/${TARGET_FILE}"
 log "Downloading model: ${URL}"
 log "Target: ${TARGET_PATH}"
 
@@ -46,5 +63,7 @@ fi
 
 # Print usage hint
 log "To start the server:"
-log "  snap run all-ai.all-ai"
+log "  snap start all-ai.server   # as a daemon"
+log "Or run in foreground for debug:"
+log "  snap run all-ai.all-ai start"
 log "This will look for the model at: $TARGET_PATH"

@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ALL ai start script for llama.cpp server with embedded Web UI
 # - Auto-detects free port starting from 8080 unless ALLAI_PORT is set
-# - Uses default model at $SNAP_COMMON/models/gemma-2b-Q4_K_M.gguf unless ALLAI_MODEL is set
+# - Uses default model at $SNAP_COMMON/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf unless ALLAI_MODEL is set
 # - Additional args can be provided via ALLAI_ARGS env var
 
 log() { printf "[ALL ai] %s\n" "$*"; }
@@ -62,10 +62,10 @@ main() {
 
   local model_path="${ALLAI_MODEL:-}"
   if [ -z "$model_path" ]; then
-    model_path="${SNAP_COMMON:-$PWD}/models/gemma-2b-Q4_K_M.gguf"
+    model_path="${ALLAI_DEFAULT_MODEL:-${SNAP_COMMON:-$PWD}/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf}"
     if [ ! -f "$model_path" ]; then
       # fallback to staged read-only location inside the snap, if present
-      local staged_model="${SNAP:-}/backend/models/gemma-2b-Q4_K_M.gguf"
+      local staged_model="${SNAP:-}/backend/models/$(basename "$model_path")"
       if [ -f "$staged_model" ]; then
         model_path="$staged_model"
       fi
@@ -73,10 +73,22 @@ main() {
   fi
 
   if [ ! -f "$model_path" ]; then
-    err "Model not found at: $model_path"
-    err "Run: snap run all-ai.fetch-model"
-    err "Or set ALLAI_MODEL to the path of your .gguf model"
-    exit 1
+    log "Model not found at: $model_path"
+    log "Attempting automatic fetch of default model..."
+    if "$SNAP/bin/fetch_model.sh"; then
+      # Re-evaluate path to pick up newly fetched default
+      local default_model_path="${ALLAI_DEFAULT_MODEL:-${SNAP_COMMON:-$PWD}/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf}"
+      if [ -f "$default_model_path" ]; then
+        model_path="$default_model_path"
+      fi
+    fi
+    if [ ! -f "$model_path" ]; then
+      err "Automatic fetch did not produce a model at: $model_path"
+      err "Run: all-ai --fetch"
+      err "Or:  snap run all-ai.fetch-model"
+      err "Or set ALLAI_MODEL to the path of your .gguf model"
+      exit 1
+    fi
   fi
 
   log "Starting ALL ai (llama.cpp server)"
@@ -87,6 +99,12 @@ main() {
 
   # Allow additional user-provided args via ALLAI_ARGS
   # Example: ALLAI_ARGS="-c 4096 --threads 6" all-ai.all-ai
+  # Persist lightweight state for the CLI status command
+  STATE_DIR="${SNAP_COMMON:-${SNAP:-$PWD}/common}/all-ai"
+  STATE_FILE="$STATE_DIR/state.json"
+  mkdir -p "$STATE_DIR"
+  printf '{ "port": "%s", "model_path": "%s" }\n' "$port" "$model_path" > "$STATE_FILE"
+
   exec "$server" -m "$model_path" --host 0.0.0.0 --port "$port" ${ALLAI_ARGS:-}
 }
 
