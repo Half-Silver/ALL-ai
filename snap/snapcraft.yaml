@@ -32,17 +32,23 @@ apps:
     plugs:
       - network
       - network-bind
+    environment:
+      PATH: $SNAP/usr/bin:$SNAP/bin:$PATH
 
   all-ai:
     command: bin/all-ai.sh
     plugs:
       - network
       - network-bind
+    environment:
+      PATH: $SNAP/usr/bin:$SNAP/bin:$PATH
 
   fetch-model:
     command: bin/fetch_model.sh
     plugs:
       - network
+    environment:
+      PATH: $SNAP/usr/bin:$SNAP/bin:$PATH
 
 parts:
   # Build llama.cpp and the embedded web UI server (llama-server)
@@ -93,10 +99,6 @@ parts:
   app-scripts:
     plugin: nil
     source: ..
-    prime:
-      - bin/*.sh
-      - backend/models/*
-      - assets/branding/*
     build-packages:
       - bash
     stage-packages:
