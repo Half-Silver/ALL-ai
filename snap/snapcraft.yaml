@@ -54,6 +54,7 @@ parts:
       - -DLLAMA_BUILD_EXAMPLES=ON
       - -DLLAMA_BUILD_SERVER=ON
       - -DLLAMA_BUILD_TESTS=OFF
+      - -DLLAMA_CURL=OFF
     build-packages:
       - build-essential
       - cmake
