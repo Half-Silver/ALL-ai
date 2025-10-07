@@ -48,7 +48,7 @@ parts:
   # Build llama.cpp and the embedded web UI server (llama-server)
   llama-cpp:
     plugin: cmake
-    source: ../backend/llama.cpp
+    source: ./backend/llama.cpp
     cmake-parameters:
       - -DCMAKE_BUILD_TYPE=Release
       - -DLLAMA_BUILD_EXAMPLES=ON
