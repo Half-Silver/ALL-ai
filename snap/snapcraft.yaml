@@ -106,7 +106,12 @@ parts:
     override-prime: |
       set -eux
       craftctl default
-      chmod +x $CRAFT_PRIME/bin/*.sh
+      # Make startup scripts executable if present
+      if [ -d "$CRAFT_PRIME/bin" ]; then
+        if ls "$CRAFT_PRIME/bin/"*.sh >/dev/null 2>&1; then
+          chmod +x "$CRAFT_PRIME"/bin/*.sh
+        fi
+      fi
 environment:
   PATH: $SNAP/usr/bin:$SNAP/bin:$PATH
   LANG: C.UTF-8
