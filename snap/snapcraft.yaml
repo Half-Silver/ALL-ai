@@ -58,9 +58,11 @@ parts:
       - build-essential
       - cmake
       - pkg-config
-      - nodejs
-      - npm
       - python3
+    build-snaps:
+      - node/20/stable
+    build-environment:
+      - PATH: /snap/bin:$PATH
     stage-packages:
       - libstdc++6
     override-build: |
