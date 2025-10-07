@@ -66,6 +66,7 @@ parts:
       - PATH: /snap/bin:$PATH
     stage-packages:
       - libstdc++6
+      - libgomp1
     override-build: |
       set -eux
       # Build the Web UI (writes to ../public via the webui build plugin)
@@ -96,6 +97,10 @@ parts:
       - bin/*
       - backend/models/*
       - assets/branding/*
+    prime:
+      - bin/*.sh
+      - backend/models/*
+      - assets/branding/*
     build-packages:
       - bash
     stage-packages:
@@ -103,6 +108,14 @@ parts:
       - netcat-openbsd
       - bash
       - procps
+    override-build: |
+      set -eux
+      # Perform default dump into $CRAFT_PART_INSTALL
+      craftctl default
+      # Ensure required launcher scripts exist and are executable
+      install -D -m 0755 "$CRAFT_PART_SRC/bin/start.sh" "$CRAFT_PART_INSTALL/bin/start.sh"
+      install -D -m 0755 "$CRAFT_PART_SRC/bin/all-ai.sh" "$CRAFT_PART_INSTALL/bin/all-ai.sh"
+      install -D -m 0755 "$CRAFT_PART_SRC/bin/fetch_model.sh" "$CRAFT_PART_INSTALL/bin/fetch_model.sh"
     override-prime: |
       set -eux
       craftctl default
