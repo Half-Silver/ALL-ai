@@ -91,12 +91,8 @@ parts:
 
   # Stage our app scripts and helper files
   app-scripts:
-    plugin: dump
+    plugin: nil
     source: ..
-    stage:
-      - bin/*
-      - backend/models/*
-      - assets/branding/*
     prime:
       - bin/*.sh
       - backend/models/*
@@ -110,28 +106,31 @@ parts:
       - procps
     override-build: |
       set -eux
-      # Perform default dump into $CRAFT_PART_INSTALL
-      craftctl default
+      # Do not copy the entire source tree; install only what we need.
       # Ensure required launcher scripts exist and are executable
       mkdir -p "$CRAFT_PART_INSTALL/bin"
       for f in start.sh all-ai.sh fetch_model.sh; do
-        if [ ! -f "$CRAFT_PART_INSTALL/bin/$f" ]; then
-          if [ -f "${CRAFT_PROJECT_DIR:-}/bin/$f" ]; then
-            install -D -m 0755 "${CRAFT_PROJECT_DIR:-}/bin/$f" "$CRAFT_PART_INSTALL/bin/$f"
-          elif [ -f "$CRAFT_PART_SRC/bin/$f" ]; then
-            install -D -m 0755 "$CRAFT_PART_SRC/bin/$f" "$CRAFT_PART_INSTALL/bin/$f"
-          else
-            echo "Warning: launcher script not found: $f" >&2
-          fi
+        if [ -f "${CRAFT_PROJECT_DIR:-}/bin/$f" ]; then
+          install -D -m 0755 "${CRAFT_PROJECT_DIR:-}/bin/$f" "$CRAFT_PART_INSTALL/bin/$f"
+        elif [ -f "$CRAFT_PART_SRC/bin/$f" ]; then
+          install -D -m 0755 "$CRAFT_PART_SRC/bin/$f" "$CRAFT_PART_INSTALL/bin/$f"
+        else
+          echo "Warning: launcher script not found: $f" >&2
         fi
       done
-    override-prime: |
-      set -eux
-      craftctl default
-      # Make startup scripts executable if present
-      if [ -d "$CRAFT_PRIME/bin" ]; then
-        if ls "$CRAFT_PRIME/bin/"*.sh >/dev/null 2>&1; then
-          chmod +x "$CRAFT_PRIME"/bin/*.sh
+      # Optional assets: backend/models/*
+      if [ -d "${CRAFT_PROJECT_DIR:-}/backend/models" ]; then
+        mkdir -p "$CRAFT_PART_INSTALL/backend/models"
+        # copy non-empty only
+        if find "${CRAFT_PROJECT_DIR:-}/backend/models" -type f | read -r _; then
+          cp -a "${CRAFT_PROJECT_DIR:-}/backend/models/." "$CRAFT_PART_INSTALL/backend/models/"
+        fi
+      fi
+      # Optional branding assets
+      if [ -d "${CRAFT_PROJECT_DIR:-}/assets/branding" ]; then
+        mkdir -p "$CRAFT_PART_INSTALL/assets/branding"
+        if find "${CRAFT_PROJECT_DIR:-}/assets/branding" -type f | read -r _; then
+          cp -a "${CRAFT_PROJECT_DIR:-}/assets/branding/." "$CRAFT_PART_INSTALL/assets/branding/"
         fi
       fi
 environment:
