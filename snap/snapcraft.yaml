@@ -113,9 +113,18 @@ parts:
       # Perform default dump into $CRAFT_PART_INSTALL
       craftctl default
       # Ensure required launcher scripts exist and are executable
-      install -D -m 0755 "$CRAFT_PART_SRC/bin/start.sh" "$CRAFT_PART_INSTALL/bin/start.sh"
-      install -D -m 0755 "$CRAFT_PART_SRC/bin/all-ai.sh" "$CRAFT_PART_INSTALL/bin/all-ai.sh"
-      install -D -m 0755 "$CRAFT_PART_SRC/bin/fetch_model.sh" "$CRAFT_PART_INSTALL/bin/fetch_model.sh"
+      mkdir -p "$CRAFT_PART_INSTALL/bin"
+      for f in start.sh all-ai.sh fetch_model.sh; do
+        if [ ! -f "$CRAFT_PART_INSTALL/bin/$f" ]; then
+          if [ -f "${CRAFT_PROJECT_DIR:-}/bin/$f" ]; then
+            install -D -m 0755 "${CRAFT_PROJECT_DIR:-}/bin/$f" "$CRAFT_PART_INSTALL/bin/$f"
+          elif [ -f "$CRAFT_PART_SRC/bin/$f" ]; then
+            install -D -m 0755 "$CRAFT_PART_SRC/bin/$f" "$CRAFT_PART_INSTALL/bin/$f"
+          else
+            echo "Warning: launcher script not found: $f" >&2
+          fi
+        fi
+      done
     override-prime: |
       set -eux
       craftctl default
