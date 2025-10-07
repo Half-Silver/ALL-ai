@@ -34,6 +34,7 @@ apps:
       - network-bind
     environment:
       PATH: $SNAP/usr/bin:$SNAP/bin:$PATH
+      LD_LIBRARY_PATH: $SNAP/usr/local/lib:$SNAP/usr/lib:$SNAP/lib:$LD_LIBRARY_PATH
 
   all-ai:
     command: bin/all-ai.sh
@@ -42,6 +43,7 @@ apps:
       - network-bind
     environment:
       PATH: $SNAP/usr/bin:$SNAP/bin:$PATH
+      LD_LIBRARY_PATH: $SNAP/usr/local/lib:$SNAP/usr/lib:$SNAP/lib:$LD_LIBRARY_PATH
 
   fetch-model:
     command: bin/fetch_model.sh
@@ -49,6 +51,7 @@ apps:
       - network
     environment:
       PATH: $SNAP/usr/bin:$SNAP/bin:$PATH
+      LD_LIBRARY_PATH: $SNAP/usr/local/lib:$SNAP/usr/lib:$SNAP/lib:$LD_LIBRARY_PATH
 
 parts:
   # Build llama.cpp and the embedded web UI server (llama-server)
