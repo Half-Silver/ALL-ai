@@ -66,6 +66,76 @@ You have two supported options to provide `llama.cpp` to the build:
           craftctl default
     ```
 
+## Manual llama.cpp build (standalone)
+
+Build upstream llama.cpp outside Snap, for local testing or development.
+
+Prereqs (Ubuntu):
+
+```bash
+sudo apt-get update
+sudo apt-get install -y build-essential cmake pkg-config nodejs npm python3
+# Optional CPU BLAS (may improve performance)
+sudo apt-get install -y libopenblas-dev
+```
+
+Clone and prepare Web UI:
+
+```bash
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp
+
+# Build the Web UI (required for llama-server UI)
+pushd tools/server/webui
+npm ci
+npm run build
+popd
+```
+
+Configure and build:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+  -DLLAMA_BUILD_SERVER=ON \
+  -DLLAMA_BUILD_EXAMPLES=ON \
+  -DLLAMA_BUILD_TESTS=OFF
+cmake --build build -j$(nproc)
+```
+
+Binaries (in `build/bin/`):
+
+- `llama-server`
+- `main` (aka `llama-cli`)
+- `quantize` (aka `llama-quantize`)
+- `embedding` (aka `embed`)
+- `perplexity`
+- `llama-bench` (aka `bench`)
+
+Run examples:
+
+```bash
+# Start server
+./build/bin/llama-server -m /path/to/model.gguf --host 0.0.0.0 --port 8080 -c 4096 --threads 6
+
+# Simple prompt via CLI
+./build/bin/main -m /path/to/model.gguf -p "Hello"
+
+# Quantize
+./build/bin/quantize /path/model-f16.gguf /path/model-q4_k_m.gguf q4_k_m
+
+# Perplexity
+./build/bin/perplexity -m /path/model.gguf -f /path/text.txt
+
+# Benchmark
+./build/bin/llama-bench --help
+```
+
+Notes:
+
+- If the web UI doesn't load, confirm `tools/server/public/index.html.gz` exists (from `npm run build`).
+- Node 18+ recommended for `tools/server/webui`.
+- These steps align with how the snap builds the server (see `snap/snapcraft.yaml` `override-build`).
+
 ## Build
 From the repository root (this directory):
 ```bash
