@@ -83,6 +83,7 @@ parts:
         elif [ -f "$CRAFT_PART_BUILD/$f" ]; then
           install -m 0755 "$CRAFT_PART_BUILD/$f" "$CRAFT_PART_INSTALL/usr/bin/$f" || true
         fi
+      done
 
   # Stage our app scripts and helper files
   app-scripts:
@@ -93,7 +94,7 @@ parts:
       - backend/models/*
       - assets/branding/*
     build-packages:
-{{ ... }}
+      - bash
     stage-packages:
       - curl
       - netcat-openbsd
