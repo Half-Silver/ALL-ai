@@ -46,6 +46,7 @@ run_one_of() {
   for n in "${names[@]}"; do
     local p
     if p="$(resolve_bin "$n")"; then
+      cd "${SNAP:-/}" || true
       exec "$p" "$@"
     fi
   done

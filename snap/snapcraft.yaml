@@ -64,6 +64,13 @@ parts:
       - -DLLAMA_BUILD_SERVER=ON
       - -DLLAMA_BUILD_TESTS=OFF
       - -DLLAMA_CURL=OFF
+      - -DGGML_NATIVE=OFF
+      - -DGGML_AVX=ON
+      - -DGGML_AVX2=ON
+      - -DGGML_F16C=ON
+      - -DGGML_FMA=ON
+      - -DGGML_BMI2=ON
+      - -DGGML_AVX512=OFF
     build-packages:
       - build-essential
       - cmake
